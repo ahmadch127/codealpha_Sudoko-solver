@@ -1,4 +1,3 @@
-#include <SFML/Graphics.hpp>
 #include <iostream>
 using namespace std;
 
@@ -15,7 +14,24 @@ int grid[N][N] = {
     {0,0,0,0,8,0,0,7,9}
 };
 
-// Sudoku solving logic
+// Function to print the Sudoku grid
+void printGrid(int grid[N][N]) {
+    for (int i = 0; i < N; i++) {
+        if (i % 3 == 0 && i != 0)
+            cout << "------+-------+------\n";
+        for (int j = 0; j < N; j++) {
+            if (j % 3 == 0 && j != 0)
+                cout << "| ";
+            if (grid[i][j] == 0)
+                cout << ". ";
+            else
+                cout << grid[i][j] << " ";
+        }
+        cout << "\n";
+    }
+}
+
+// Check if placing num in grid[row][col] is valid
 bool isSafe(int grid[N][N], int row, int col, int num) {
     for (int x = 0; x < N; x++)
         if (grid[row][x] == num || grid[x][col] == num)
@@ -30,6 +46,7 @@ bool isSafe(int grid[N][N], int row, int col, int num) {
     return true;
 }
 
+// Solve Sudoku using backtracking
 bool solveSudoku(int grid[N][N]) {
     for (int row = 0; row < N; row++)
         for (int col = 0; col < N; col++)
@@ -48,80 +65,31 @@ bool solveSudoku(int grid[N][N]) {
 }
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(450, 450), "Sudoku Solver (Press S to Solve)");
+    cout << "Initial Sudoku Puzzle:\n";
+    printGrid(grid);
 
-    sf::Font font;
-    if (!font.loadFromFile("arial.ttf")) {
-        cout << "Failed to load font\n";
-        return -1;
-    }
-
-    int cellSize = 50;
-    int selectedRow = -1, selectedCol = -1;
-
-    while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                window.close();
-
-            // Click to select cell
-            if (event.type == sf::Event::MouseButtonPressed) {
-                int x = event.mouseButton.x / cellSize;
-                int y = event.mouseButton.y / cellSize;
-                if (x >= 0 && x < 9 && y >= 0 && y < 9) {
-                    selectedCol = x;
-                    selectedRow = y;
-                }
-            }
-
-            // Key press to enter number
-            if (event.type == sf::Event::TextEntered && selectedRow != -1 && selectedCol != -1) {
-                char c = static_cast<char>(event.text.unicode);
-                if (c >= '1' && c <= '9') {
-                    grid[selectedRow][selectedCol] = c - '0';
-                } else if (c == '0') {
-                    grid[selectedRow][selectedCol] = 0;
-                }
-            }
-
-            // Press 'S' to solve
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::S) {
-                solveSudoku(grid);
-            }
+    char choice;
+    do {
+        int r, c, val;
+        cout << "\nEnter row (1-9), column (1-9), and value (0 to clear): ";
+        cin >> r >> c >> val;
+        if (r >= 1 && r <= 9 && c >= 1 && c <= 9 && val >= 0 && val <= 9) {
+            grid[r - 1][c - 1] = val;
+        } else {
+            cout << "Invalid input! Try again.\n";
         }
 
-        // Draw
-        window.clear(sf::Color::White);
+        printGrid(grid);
 
-        // Draw grid
-        for (int i = 0; i <= 9; i++) {
-            sf::RectangleShape line(sf::Vector2f(450, (i % 3 == 0 ? 3 : 1)));
-            line.setPosition(0, i * cellSize);
-            line.setFillColor(sf::Color::Black);
-            window.draw(line);
+        cout << "Do you want to enter more values? (y/n): ";
+        cin >> choice;
+    } while (choice == 'y' || choice == 'Y');
 
-            line.setSize(sf::Vector2f((i % 3 == 0 ? 3 : 1), 450));
-            line.setPosition(i * cellSize, 0);
-            window.draw(line);
-        }
-
-        // Draw numbers
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (grid[i][j] != 0) {
-                    sf::Text text;
-                    text.setFont(font);
-                    text.setString(to_string(grid[i][j]));
-                    text.setCharacterSize(28);
-                    text.setFillColor(sf::Color::Black);
-                    text.setPosition(j * cellSize + 18, i * cellSize + 10);
-                    window.draw(text);
-                }
-            }
-        }
-
-        window.display();
+    cout << "\nSolving Sudoku...\n";
+    if (solveSudoku(grid)) {
+        printGrid(grid);
+    } else {
+        cout << "No solution exists!\n";
     }
 
     return 0;
